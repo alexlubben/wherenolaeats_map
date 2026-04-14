@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Where Y'Eat: Ian McNulty's New Orleans Restaurant Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#1a1a1a;--cream:#f5f0e8;--gold:#c8a95e;--blue:#2c5f7c;--paper:#faf7f2;--shadow:rgba(26,26,26,.12)}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--ink);overflow:hidden;height:100vh}
+  header{background:var(--ink);color:var(--cream);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:1000;position:relative;box-shadow:0 2px 12px var(--shadow)}
+  .hb{display:flex;align-items:center;gap:12px;flex-shrink:0}
+  h1{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;white-space:nowrap}
+  h1 span{color:var(--gold)}
+  .sub{font-size:.75rem;opacity:.6;font-weight:300;white-space:nowrap}
+  .ctrl{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+  #q,#cf,#nf{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--cream);padding:5px 10px;border-radius:4px;font-family:'Source Sans 3',sans-serif;font-size:.82rem}
+  #q{width:180px}#q::placeholder{color:rgba(245,240,232,.4)}#q:focus{outline:none;border-color:var(--gold);background:rgba(255,255,255,.15)}
+  #cf option,#nf option{background:var(--ink);color:var(--cream)}
+  .ct{font-size:.75rem;opacity:.5;white-space:nowrap;font-weight:600}
+  #map{height:calc(100vh - 74px);width:100%}
+  #map .leaflet-left{transition:left .3s ease;left:350px}
+  #map.sb-closed .leaflet-left{left:10px}
+  .sb{position:absolute;top:74px;left:0;width:340px;height:calc(100vh - 74px);background:var(--paper);z-index:800;overflow-y:auto;box-shadow:4px 0 20px var(--shadow);transition:transform .3s ease;border-right:1px solid rgba(0,0,0,.06)}
+  .sb.c{transform:translateX(-340px)}
+  .tog{position:absolute;top:84px;left:340px;z-index:801;background:var(--paper);border:1px solid rgba(0,0,0,.1);border-left:none;padding:10px 6px;cursor:pointer;border-radius:0 4px 4px 0;box-shadow:4px 0 12px var(--shadow);font-size:.85rem;transition:left .3s ease;color:var(--ink)}
+  .sb.c+.tog{left:0}
+  .sh{padding:14px 18px 10px;border-bottom:1px solid rgba(0,0,0,.08);position:sticky;top:0;background:var(--paper);z-index:2}
+  .sh h2{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:2px}
+  .sh p{font-size:.72rem;opacity:.5}
+  .ri{padding:9px 18px;border-bottom:1px solid rgba(0,0,0,.04);cursor:pointer;transition:background .15s;display:flex;gap:10px;align-items:flex-start}
+  .ri:hover{background:rgba(200,169,94,.08)}
+  .ri .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px}
+  .ri .info{flex:1;min-width:0}
+  .ri .nm{font-family:'Playfair Display',serif;font-size:.88rem;font-weight:700;line-height:1.3}
+  .ri .ad{font-size:.72rem;opacity:.5;margin-top:1px}
+  .ri .tg{display:inline-block;font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;padding:1px 5px;border-radius:2px;margin-top:2px;color:white}
+  .leaflet-popup-content-wrapper{border-radius:6px;box-shadow:0 4px 24px rgba(0,0,0,.18);padding:0;font-family:'Source Sans 3',sans-serif}
+  .leaflet-popup-content{margin:0;min-width:200px;max-width:280px}
+  .pi{padding:14px 16px}
+  .pi h3{font-family:'Playfair Display',serif;font-size:1.05rem;margin-bottom:3px;color:var(--ink);line-height:1.3}
+  .pi .pa{font-size:.78rem;opacity:.55;margin-bottom:5px}
+  .pi .pc{display:inline-block;font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;padding:2px 7px;border-radius:2px;margin-bottom:8px;color:white}
+  .pi a{display:inline-block;font-size:.78rem;font-weight:600;color:var(--blue);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}
+  .pi a:hover{border-bottom-color:var(--blue)}
+  .legend{position:absolute;bottom:20px;right:12px;background:var(--paper);padding:10px 14px;border-radius:6px;box-shadow:0 2px 12px var(--shadow);z-index:800;font-size:.68rem;border:1px solid rgba(0,0,0,.06)}
+  .legend h4{font-family:'Playfair Display',serif;font-size:.76rem;margin-bottom:5px;font-weight:700}
+  .legend-item{display:flex;align-items:center;gap:5px;margin-bottom:2px}
+  .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  @media(max-width:768px){header{padding:6px 10px;flex-wrap:wrap}h1{font-size:1rem}.sub{display:none}#q{width:110px}#nf{display:none}.sb{width:100%}.sb.c{transform:translateX(-100%)}.tog{left:100%}.sb.c+.tog{left:0}.legend{bottom:8px;right:6px;font-size:.6rem;padding:6px 10px}#map .leaflet-left{left:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hb"><img src="data:image/jpeg;base64,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" alt="Where NOLA Eats" style="height:54px;border-radius:4px;"/><span class="sub" style="margin-left:8px;">Ian McNulty's Restaurant Map&ensp;|&ensp;The Times-Picayune</span></div>
+  <div class="ctrl">
+    <input type="text" id="q" placeholder="Search restaurants…"/>
+    <select id="cf"><option value="all">All Categories</option></select>
+    <select id="nf"><option value="all">All Neighborhoods</option></select>
+    <span class="ct" id="ct"></span>
+  </div>
+</header>
+<div class="sb" id="sb"><div class="sh"><h2>Restaurant Index</h2><p>Click a name to fly to it on the map</p></div><div id="rl"></div></div>
+<button class="tog" id="tog">&#9664;</button>
+<div id="map"></div>
+<div class="legend">
+  <h4>Categories</h4>
+  <div class="legend-item"><div class="legend-dot" style="background:#722f37"></div> Upscale Creole</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#c8a95e"></div> Traditional NOLA</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#2c5f7c"></div> Modern / Contemporary</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#5a7247"></div> Global Flavors</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#b8602a"></div> Casual / Neighborhood</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4a8b9b"></div> Seafood</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8b6e99"></div> Bar / Cocktails</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#c4713b"></div> Po-boys / Sandwiches</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a0856e"></div> Bakery / Cafe</div>
+  <div style="margin-top:6px;font-size:.55rem;opacity:.45;line-height:1.3">Neighborhoods: <a href="http://hdl.handle.net/2451/43802" target="_blank" style="color:inherit">Neighborhood Area Boundary for New Orleans, LA, 2018</a></div>
+</div>
+<script>
+var CC={"Upscale Creole":"#722f37","Traditional NOLA":"#c8a95e","Modern / Contemporary":"#2c5f7c","Global Flavors":"#5a7247","Casual / Neighborhood":"#b8602a","Seafood":"#4a8b9b","Bar / Cocktails":"#8b6e99","Po-boys / Sandwiches":"#c4713b","Bakery / Cafe":"#a0856e"};
+
+// [name, address, lat, lng, category, neighborhood, articleURL]
+var R=[
+["Brennan's","417 Royal St, New Orleans",29.9561,-90.0666,"Upscale Creole","French Quarter","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["Commander's Palace","1403 Washington Ave, New Orleans",29.9288,-90.0842,"Upscale Creole","Garden District","https://www.nola.com/entertainment_life/eat-drink/commanders-palace-ella-brennan-tribute-menu/article_9cc54d33-730e-410e-9c1b-cf6407b9c9d4.html"],
+["Emeril's","800 Tchoupitoulas St, New Orleans",29.9446,-90.0673,"Upscale Creole","Lower Garden District","https://www.nola.com/entertainment_life/eat-drink/new-orleans-la-restaurants-most-likely-to-win-michelin-stars/article_eb6bd4f9-4d98-485c-b75c-bcfab801cfc9.html"],
+["MaMou","942 N Rampart St, New Orleans",29.9628,-90.0661,"Upscale Creole","French Quarter","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["Restaurant August","301 Tchoupitoulas St, New Orleans",29.9500,-90.0668,"Upscale Creole","CBD","https://www.nola.com/entertainment_life/eat-drink/new-orleans-la-restaurants-most-likely-to-win-michelin-stars/article_eb6bd4f9-4d98-485c-b75c-bcfab801cfc9.html"],
+["Antoine's","713 St Louis St, New Orleans",29.9567,-90.0664,"Upscale Creole","French Quarter","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Galatoire's","209 Bourbon St, New Orleans",29.9549,-90.0690,"Traditional NOLA","French Quarter","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Brigtsen's","723 Dante St, New Orleans",29.9457,-90.1348,"Traditional NOLA","Leonidas","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Clancy's","6100 Annunciation St, New Orleans",29.9191,-90.1251,"Traditional NOLA","Audubon","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Dooky Chase's","2301 Orleans Ave, New Orleans",29.9682,-90.0785,"Traditional NOLA","Tremé","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Tujague's","429 Decatur St, New Orleans",29.9550,-90.0646,"Traditional NOLA","French Quarter","https://www.nola.com/entertainment_life/eat-drink/tujagues-chicken/article_6659d80b-a883-4ffa-8e66-6995dab0a612.html"],
+["Mandina's","3800 Canal St, New Orleans",29.9723,-90.0980,"Traditional NOLA","Mid-City","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Mosca's","4137 US-90, Westwego",29.9112,-90.2293,"Traditional NOLA","Westwego","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Casamento's","4330 Magazine St, New Orleans",29.9207,-90.1011,"Traditional NOLA","East Riverside","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Jacques-Imo's","8324 Oak St, New Orleans",29.9491,-90.1323,"Traditional NOLA","Leonidas","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Coquette","2800 Magazine St, New Orleans",29.9261,-90.0826,"Modern / Contemporary","Irish Channel","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["La Petite Grocery","4238 Magazine St, New Orleans",29.9208,-90.1001,"Modern / Contemporary","East Riverside","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["N7","1117 Montegut St, New Orleans",29.9686,-90.0457,"Modern / Contemporary","St. Claude","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Herbsaint","701 St Charles Ave, New Orleans",29.9473,-90.0716,"Modern / Contemporary","CBD","https://www.nola.com/entertainment_life/eat-drink/what-herbsaint-restaurant-in-new-orleans-is-like-at-25-years/article_7ea5e958-3b06-464e-ba11-5674fbef9607.html"],
+["Compère Lapin","535 Tchoupitoulas St, New Orleans",29.9479,-90.0673,"Modern / Contemporary","CBD","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["Cochon","930 Tchoupitoulas St, New Orleans",29.9423,-90.0673,"Modern / Contemporary","Lower Garden District","https://www.nola.com/entertainment_life/eat-drink/new-orleans-chef-donald-link-wins-lifetime-achievement-award/article_9fac7fe4-b496-11ee-920d-4becaab6f405.html"],
+["Peche Seafood Grill","800 Magazine St, New Orleans",29.9452,-90.0691,"Seafood","Lower Garden District","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Etoile","3607 Magazine St, New Orleans",29.9223,-90.0919,"Modern / Contemporary","Touro","https://www.nola.com/entertainment_life/eat-drink/best-new-new-orleans-restaurants-to-try-in-2025/article_56833ab2-b74f-11ef-a72a-7bdcc00408a2.html"],
+["Bon Ton Prime Rib","401 Magazine St, New Orleans",29.9496,-90.0681,"Modern / Contemporary","CBD","https://www.nola.com/entertainment_life/eat-drink/best-new-new-orleans-restaurants-to-try-in-2025/article_56833ab2-b74f-11ef-a72a-7bdcc00408a2.html"],
+["Willie Mae's NOLA","898 Baronne St, New Orleans",29.9450,-90.0745,"Traditional NOLA","CBD","https://www.nola.com/entertainment_life/eat-drink/best-new-new-orleans-restaurants-to-try-in-2025/article_56833ab2-b74f-11ef-a72a-7bdcc00408a2.html"],
+["Saint-Germain","3054 St Claude Ave, New Orleans",29.9675,-90.0447,"Modern / Contemporary","Bywater","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Dakar NOLA","3814 Magazine St, New Orleans",29.9212,-90.0945,"Global Flavors","East Riverside","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Evviva","2600 Dauphine St, New Orleans",29.9656,-90.051,"Modern / Contemporary","Bywater","https://www.nola.com/entertainment_life/ian_mcnulty/these-are-ian-mcnulty-s-top-five-new-restaurants-for-new-orleans-from-2025/article_1d7c329b-6925-4605-a233-44a5a674384d.html"],
+["The Kingsway","4201 Magazine St, New Orleans",29.9212,-90.0993,"Global Flavors","Touro","https://www.nola.com/entertainment_life/ian_mcnulty/these-are-ian-mcnulty-s-top-five-new-restaurants-for-new-orleans-from-2025/article_1d7c329b-6925-4605-a233-44a5a674384d.html"],
+["Le Moyne Bistro","746 Tchoupitoulas St, New Orleans",29.9453,-90.0672,"Modern / Contemporary","CBD","https://www.nola.com/entertainment_life/ian_mcnulty/these-are-ian-mcnulty-s-top-five-new-restaurants-for-new-orleans-from-2025/article_1d7c329b-6925-4605-a233-44a5a674384d.html"],
+["Dr. Jones","1325 Veterans Memorial Blvd, Metairie",30.0022,-90.1379,"Modern / Contemporary","Metairie","https://www.nola.com/entertainment_life/ian_mcnulty/these-are-ian-mcnulty-s-top-five-new-restaurants-for-new-orleans-from-2025/article_1d7c329b-6925-4605-a233-44a5a674384d.html"],
+["Charmant","514 City Park Ave, New Orleans",29.9833,-90.1049,"Modern / Contemporary","Mid-City","https://www.nola.com/entertainment_life/ian_mcnulty/nola-restaurant-closures-2025/article_e537ae18-87a4-430e-a4fe-7aad96361226.html"],
+["Zasu","127 N Carrollton Ave, New Orleans",29.9753,-90.1003,"Modern / Contemporary","Mid-City","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Toups' Meatery","845 N Carrollton Ave, New Orleans",29.9807,-90.0945,"Modern / Contemporary","City Park","https://www.nola.com/entertainment_life/eat-drink/new-orleans-la-restaurants-most-likely-to-win-michelin-stars/article_eb6bd4f9-4d98-485c-b75c-bcfab801cfc9.html"],
+["Sofia","516 Julia St, New Orleans",29.9453,-90.0698,"Modern / Contemporary","CBD","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Marjie's Grill","320 S Broad St, New Orleans",29.9632,-90.0891,"Global Flavors","Tulane-Gravier","https://www.nola.com/entertainment_life/eat-drink/new-orleans-restaurants-to-try-and-what-to-order-in-2025/article_f980ec26-b8b9-11ef-8b21-d7a98aaf4589.html"],
+["Acamaya","3070 Dauphine St, New Orleans",29.9645,-90.0457,"Global Flavors","Bywater","https://www.nola.com/entertainment_life/eat-drink/best-new-new-orleans-restaurants-to-try-in-2025/article_56833ab2-b74f-11ef-a72a-7bdcc00408a2.html"],
+["Mister Mao","4501 Tchoupitoulas St, New Orleans",29.9171,-90.1025,"Modern / Contemporary","West Riverside","https://www.nola.com/entertainment_life/eat-drink/article_071fa7cc-3a79-11ec-87f5-5f073f33156d.html"],
+["Saffron NOLA","4128 Magazine St, New Orleans",29.9209,-90.0988,"Global Flavors","East Riverside","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Costera","4938 Prytania St, New Orleans",29.9244,-90.1088,"Global Flavors","Uptown","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Addis NOLA","2514 Bayou Rd, New Orleans",29.9763,-90.0766,"Global Flavors","7th Ward","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Alma Cafe","800 Louisa St, New Orleans",29.9642,-90.0436,"Global Flavors","Bywater","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Thaihey NOLA","308 Decatur St, New Orleans",29.9536,-90.0652,"Global Flavors","French Quarter","https://www.nola.com/entertainment_life/eat-drink/french-quarter-restaurant-thaihey-goes-beyond-thai-tradition/article_ed1ad130-2ff8-11ef-8aba-f72bd325bc6c.html"],
+["Thai NOLA","5931 Bullard Ave, New Orleans",30.0402,-89.9551,"Global Flavors","Read Blvd East","https://www.nola.com/entertainment_life/eat-drink/new-restaurants-in-the-new-orleans-area-to-try-in-2024/article_90e2760c-9534-11ee-8748-d38cb30489d7.html"],
+["Dian Xin","620 Conti St, New Orleans",29.9553,-90.0665,"Global Flavors","French Quarter","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Queen Trini Lisa","4200 D'Hemecourt St, New Orleans",29.9714,-90.1064,"Global Flavors","Mid-City","https://www.nola.com/entertainment_life/eat-drink/island-soul-food-with-new-orleans-style-fires-up-this-tiny-mid-city-restaurant/article_16f71eea-7562-11ec-bdfe-9307bdca33cb.html"],
+["High Hat Cafe","4500 Freret St, New Orleans",29.9351,-90.1043,"Casual / Neighborhood","Freret","https://www.nola.com/entertainment_life/eat-drink/freret-restaurants-nola/article_0b1a3036-2548-421c-ba63-ff7fb879ca29.html"],
+["Li'l Dizzy's Cafe","1500 Esplanade Ave, New Orleans",29.9686,-90.0679,"Casual / Neighborhood","Tremé","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Liuzza's by the Track","1518 N Lopez St, New Orleans",29.9803,-90.0832,"Casual / Neighborhood","Fairgrounds","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Rosedale","801 Rosedale Dr, New Orleans",29.9847,-90.1086,"Casual / Neighborhood","Navarre","https://www.nola.com/entertainment_life/eat-drink/susan-spicer-rosedale-restaurant-new-orleans/article_059b190d-e8e6-44d2-8b39-5d4d1a7e0b40.html"],
+["Nighthawk Napoletana","141 Delaronde St, Algiers",29.9522,-90.0546,"Casual / Neighborhood","Algiers Point","https://www.nola.com/entertainment_life/eat-drink/new-restaurants-in-the-new-orleans-area-to-try-in-2024/article_90e2760c-9534-11ee-8748-d38cb30489d7.html"],
+["Anita's Grill","833 Howard Ave, New Orleans",29.9447,-90.0743,"Casual / Neighborhood","CBD","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["Pigeon & Whale","4525 Freret St, New Orleans",29.9352,-90.1048,"Seafood","Freret","https://www.nola.com/entertainment_life/eat-drink/new-restaurants-in-the-new-orleans-area-to-try-in-2024/article_90e2760c-9534-11ee-8748-d38cb30489d7.html"],
+["GW Fins","808 Bienville St, New Orleans",29.9555,-90.0688,"Seafood","French Quarter","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Parkway Bakery & Tavern","538 Hagan Ave, New Orleans",29.9736,-90.0903,"Po-boys / Sandwiches","Bayou St. John","https://www.nola.com/entertainment_life/eat-drink/new-orleans-la-restaurants-most-likely-to-win-michelin-stars/article_eb6bd4f9-4d98-485c-b75c-bcfab801cfc9.html"],
+["Cochon Butcher","930 Tchoupitoulas St, New Orleans",29.9422,-90.0671,"Po-boys / Sandwiches","Lower Garden District","https://www.nola.com/entertainment_life/eat-drink/new-orleans-la-restaurants-most-likely-to-win-michelin-stars/article_eb6bd4f9-4d98-485c-b75c-bcfab801cfc9.html"],
+["Turkey and the Wolf","739 Jackson Ave, New Orleans",29.9272,-90.0743,"Po-boys / Sandwiches","St. Thomas","https://www.nola.com/entertainment_life/eat-drink/what-michelin-got-right-and-wrong-in-new-orleans-restaurants/article_818448bd-64f0-48ad-8302-ee2d965ec0a5.html"],
+["Cure","4905 Freret St, New Orleans",29.9350,-90.1075,"Bar / Cocktails","Freret","https://www.nola.com/entertainment_life/eat-drink/freret-restaurants-nola/article_0b1a3036-2548-421c-ba63-ff7fb879ca29.html"],
+["Bacchanal Fine Wine","600 Poland Ave, New Orleans",29.9598,-90.0333,"Bar / Cocktails","Bywater","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Seiji's Omakase","2300 N Causeway Blvd, Metairie",29.9943,-90.1563,"Global Flavors","Metairie","https://www.nola.com/entertainment_life/eat-drink/new-restaurants-in-the-new-orleans-area-to-try-in-2024/article_90e2760c-9534-11ee-8748-d38cb30489d7.html"],
+["Bywater Bakery","3624 Dauphine St, New Orleans",29.9630,-90.0392,"Bakery / Cafe","Bywater","https://www.nola.com/entertainment_life/eat-drink/best-king-cakes-in-new-orleans-la-for-mardi-gras-2024/article_b6a8bbaa-c1e7-11ee-b21b-8fd572c1bde7.html"],
+["Dong Phuong Bakery","14207 Chef Menteur Hwy, New Orleans",30.0358,-89.9149,"Bakery / Cafe","Village de l'Est","https://www.nola.com/entertainment_life/eat-drink/ian-mcnulty-before-the-king-cakes-and-a-lawsuit-this-is-what-made-the-dong/article_d4ed417e-d600-11eb-9ef0-d73ed8aca959.html"],
+["Jewel of the South","1026 St Louis St, New Orleans",29.9586,-90.0695,"Bar / Cocktails","French Quarter","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Tacos Del Cartel","1010 Girod St, New Orleans",29.9481,-90.0752,"Global Flavors","CBD","https://www.nola.com/entertainment_life/eat-drink/best-new-new-orleans-restaurants-to-try-in-2025/article_56833ab2-b74f-11ef-a72a-7bdcc00408a2.html"],
+["Pulcinella!","1300 St Bernard Ave, New Orleans",29.9693,-90.0638,"Casual / Neighborhood","7th Ward","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["Tia Maria's Kitchen","2931 Tulane Ave, New Orleans",29.9635,-90.0940,"Global Flavors","Mid-City","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["Aguasanta","8312 Oak St, New Orleans",29.9488,-90.1319,"Global Flavors","Leonidas","https://www.nola.com/entertainment_life/eat-drink/new-orleans-restaurants-to-try-and-what-to-order-in-2025/article_f980ec26-b8b9-11ef-8b21-d7a98aaf4589.html"],
+["Gautreau's","1728 Soniat St, New Orleans",29.9299,-90.1097,"Upscale Creole","Uptown","https://www.nola.com/entertainment_life/eat-drink/new-orleans-restaurants-to-try-and-what-to-order-in-2025/article_f980ec26-b8b9-11ef-8b21-d7a98aaf4589.html"],
+["Miss Shirley's Chinese","3009 Magazine St, New Orleans",29.9249,-90.0849,"Global Flavors","Garden District","https://www.nola.com/entertainment_life/eat-drink/new-orleans-restaurants-to-try-and-what-to-order-in-2025/article_f980ec26-b8b9-11ef-8b21-d7a98aaf4589.html"],
+["Smoke & Honey","3301 Bienville St, New Orleans",29.9713,-90.0914,"Casual / Neighborhood","Mid-City","https://www.nola.com/entertainment_life/eat-drink/new-orleans-restaurants-to-try-and-what-to-order-in-2025/article_f980ec26-b8b9-11ef-8b21-d7a98aaf4589.html"],
+["Tuk Tuk Thai","901 Veterans Memorial Blvd, Metairie",30.0020,-90.1321,"Global Flavors","Metairie","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["Maria's Oyster & Wine Bar","748 Tchoupitoulas St, New Orleans",29.9453,-90.0673,"Seafood","CBD","https://www.nola.com/entertainment_life/ian_mcnulty/these-are-ian-mcnulty-s-top-five-new-restaurants-for-new-orleans-from-2025/article_1d7c329b-6925-4605-a233-44a5a674384d.html"],
+["Espíritu Downtown","520 Capdeville St, New Orleans",29.9472,-90.0692,"Global Flavors","CBD","https://www.nola.com/entertainment_life/eat-drink/espiritu-mexican-restaurant-midcity/article_370f2716-df49-4ea0-b60c-602e3dad0485.html"],
+["Hot & Soul","2540 Banks St, New Orleans",29.9616,-90.0883,"Global Flavors","Tulane-Gravier","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["LUFU NOLA","301 St Charles Ave, New Orleans",29.9515,-90.0702,"Global Flavors","CBD","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["Mời Vietnamese","2809 St Claude Ave, New Orleans",29.9687,-90.0479,"Global Flavors","St. Claude","https://www.nola.com/entertainment_life/ian_mcnulty/family-stories-nola-restaurants/article_42e44dfb-077e-4f32-a4a5-e5401c5a3874.html"],
+["Saba","5757 Magazine St, New Orleans",29.9217,-90.1186,"Global Flavors","Audubon","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Barracuda","3984 Tchoupitoulas St, New Orleans",29.9174,-90.0962,"Global Flavors","Irish Channel","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Drago's Seafood","2 Poydras St, New Orleans",29.9477,-90.0633,"Seafood","CBD","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Superior Seafood","4338 St Charles Ave, New Orleans",29.9263,-90.1017,"Seafood","Touro","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Palm & Pine","308 N Rampart St, New Orleans",29.9575,-90.0708,"Modern / Contemporary","French Quarter","https://www.nola.com/entertainment_life/eat-drink/new-restaurants-in-the-new-orleans-area-to-try-in-2024/article_90e2760c-9534-11ee-8748-d38cb30489d7.html"],
+["Bonafried","3101 Grand Route St John, New Orleans",29.9799,-90.0834,"Po-boys / Sandwiches","Fairgrounds","https://www.nola.com/entertainment_life/eat-drink/new-orleans-restaurants-opening-2026/article_035a3fd1-2d8e-4299-baf2-fa80f436982f.html"],
+["Cafe Degas","3127 Esplanade Ave, New Orleans",29.9803,-90.0842,"Modern / Contemporary","Fairgrounds","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Katie's","3701 Iberville St, New Orleans",29.9731,-90.0959,"Casual / Neighborhood","Mid-City","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Lola's","3312 Esplanade Ave, New Orleans",29.9807,-90.0854,"Global Flavors","Bayou St. John","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Plume Algiers","1113 Teche St, New Orleans",29.944,-90.0523,"Global Flavors","McDonogh","https://www.nola.com/new-orleans-hidden-gem-restaurants-for-seafood-gumbo-more/article_1bb267a0-e6cb-11ee-9d7a-738963b7b393.html"],
+["Dolfy's","4508 Freret St, New Orleans",29.9351,-90.1045,"Modern / Contemporary","Freret","https://www.nola.com/entertainment_life/eat-drink/new-orleans-restaurants-opening-2026/article_035a3fd1-2d8e-4299-baf2-fa80f436982f.html"],
+["Revel Cafe & Bar","133 N Carrollton Ave, New Orleans",29.9754,-90.1002,"Bar / Cocktails","Mid-City","https://www.nola.com/entertainment_life/eat-drink/revel-bar-in-mid-city-makes-a-great-burger-and-cocktails/article_f0d7ab36-f5e7-11ee-b593-cb903b76baef.html"],
+["Delacroix","1 Poydras St, New Orleans",29.9495,-90.0628,"Traditional NOLA","CBD","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["Gianna","700 Magazine St, New Orleans",29.9467,-90.0687,"Modern / Contemporary","CBD","https://www.nola.com/entertainment_life/eat-drink/ian-mcnulty-6-dishes-one-drink-and-a-quick-day-trip-for-a-hot-new/article_5a0d5fcc-5030-11ef-b5e7-b3509f5fd22c.html"],
+["Irene's","529 Bienville St, New Orleans",29.9541,-90.0661,"Traditional NOLA","French Quarter","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Ye Olde College Inn","3000 S Carrollton Ave, New Orleans",29.9606,-90.1160,"Traditional NOLA","Gert Town","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Ralph's on the Park","900 City Park Ave, New Orleans",29.9834,-90.0980,"Upscale Creole","City Park","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Domilise's","5240 Annunciation St, New Orleans",29.9174,-90.1124,"Po-boys / Sandwiches","West Riverside","https://www.nola.com/entertainment_life/eat-drink/what-michelin-got-right-and-wrong-in-new-orleans-restaurants/article_818448bd-64f0-48ad-8302-ee2d965ec0a5.html"],
+["La Boulangerie","4600 Magazine St, New Orleans",29.9205,-90.1040,"Bakery / Cafe","West Riverside","https://www.nola.com/entertainment_life/eat-drink/new-orleans-chef-donald-link-wins-lifetime-achievement-award/article_9fac7fe4-b496-11ee-920d-4becaab6f405.html"],
+["Five Happiness","3605 S Carrollton Ave, New Orleans",29.9644,-90.1108,"Global Flavors","Gert Town","https://www.nola.com/gambit/best_of_new_orleans/2025-best-of-new-orleans-food/article_6ce45c9c-bb5c-4b8b-9a93-aaf28545294d.html"],
+["Company Burger","4600 Freret St, New Orleans",29.9347,-90.1057,"Casual / Neighborhood","Freret","https://www.nola.com/entertainment_life/eat-drink/freret-restaurants-nola/article_0b1a3036-2548-421c-ba63-ff7fb879ca29.html"],
+["Chi Chi's","4714 Freret St, New Orleans",29.9349,-90.1068,"Casual / Neighborhood","Freret","https://www.nola.com/entertainment_life/eat-drink/freret-restaurants-nola/article_0b1a3036-2548-421c-ba63-ff7fb879ca29.html"],
+["Fury's","724 Martin Behrman Ave, Metairie",30.0030,-90.1312,"Seafood","Metairie","https://www.nola.com/new-orleans-hidden-gem-restaurants-for-seafood-gumbo-more/article_1bb267a0-e6cb-11ee-9d7a-738963b7b393.html"],
+["La Boca","870 Tchoupitoulas St, New Orleans",29.9435,-90.0673,"Modern / Contemporary","Lower Garden District","https://www.nola.com/entertainment_life/eat-drink/list-of-best-2025-restaurants-in-new-orleans-louisiana/article_64a8e3c3-f897-4f1b-81fc-c9567477034d.html"],
+["Espíritu Mid-City","139 S Cortez St, New Orleans",29.9718,-90.0985,"Global Flavors","Mid-City","https://www.nola.com/entertainment_life/eat-drink/espiritu-mexican-restaurant-midcity/article_370f2716-df49-4ea0-b60c-602e3dad0485.html"],
+["Dat Dog","5030 Freret St, New Orleans",29.9348,-90.1091,"Casual / Neighborhood","Freret","https://www.nola.com/entertainment_life/eat-drink/freret-restaurants-nola/article_0b1a3036-2548-421c-ba63-ff7fb879ca29.html"],
+["Nikkei","600 N Broad St, New Orleans",29.9692,-90.0836,"Global Flavors","Tremé","https://www.nola.com/entertainment_life/ian_mcnulty/best-dishes-nola/article_ff63d39d-93cb-4f5c-85c6-d6c78f5fe708.html"],
+["Tan Dinh","1705 Lafayette St, Gretna",29.9070,-90.0538,"Global Flavors","Gretna","https://www.nola.com/entertainment_life/eat-drink/vietnamese-restaurant-tan-dinh-reopens-with-some-changes-on-the-table-after-long-hiatus/article_db535e02-cbe8-11ec-91cf-57887ec9357f.html"],
+["Ba Chi Kitchen + Bar","3547 18th St, Metairie",30.0088,-90.1612,"Global Flavors","Metairie","https://www.nola.com/entertainment_life/eat-drink/ba-chi-kitchen-has-modern-vietnamese-food-in-metairie-la/article_fcd0603e-3ef5-45d9-bd88-8cd89064917c.html"],
+["Pho Tau Bay","1565 Tulane Ave, New Orleans",29.9565,-90.0785,"Global Flavors","CBD","https://www.nola.com/entertainment_life/eat-drink/new-orleans-dining-guide-2019-best-vietnamese/article_f1a36597-328e-592d-b662-bdf1664f16b9.html"],
+["Nine Roses","1100 Stephens St, Gretna",29.9158,-90.0452,"Global Flavors","Gretna","https://www.nola.com/entertainment_life/eat-drink/new-orleans-dining-guide-essential-100-vietnamese/article_02d8a6d1-22db-5e42-88e3-7632129dcf86.html"],
+["Café Minh","4139 Canal St, New Orleans",29.9753,-90.1013,"Global Flavors","Mid-City","https://www.nola.com/entertainment_life/eat-drink/new-orleans-dining-guide-2019-best-vietnamese/article_f1a36597-328e-592d-b662-bdf1664f16b9.html"],
+];
+
+var map=L.map('map',{zoomControl:false}).setView([29.960,-90.075],13);
+L.control.zoom({position:'bottomleft'}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',subdomains:'abcd',maxZoom:19}).addTo(map);
+
+var all=[], cats=new Set(), hoods=new Set();
+
+R.forEach(function(r){
+  var cat=r[4], hood=r[5], col=CC[cat]||"#999";
+  cats.add(cat); hoods.add(hood);
+  var ic=L.divIcon({className:'x',html:'<div style="width:12px;height:12px;background:'+col+';border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>',iconSize:[12,12],iconAnchor:[6,6]});
+  var m=L.marker([r[2],r[3]],{icon:ic}).addTo(map);
+  m.bindPopup('<div class="pi"><h3>'+r[0]+'</h3><div class="pa">'+r[1]+'</div><div class="pc" style="background:'+col+'">'+cat+'</div><br><a href="'+r[6]+'" target="_blank" rel="noopener">Read Ian McNulty\'s coverage &rarr;</a></div>',{maxWidth:280});
+  all.push({m:m,n:r[0],a:r[1],cat:cat,hood:hood,col:col});
+});
+
+// Populate dropdowns
+var cf=document.getElementById('cf'),nf=document.getElementById('nf');
+Object.keys(CC).forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cf.appendChild(o)});
+[].concat(Array.from(hoods)).sort().forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h;nf.appendChild(o)});
+
+function render(items){
+  var l=document.getElementById('rl');l.innerHTML='';
+  document.getElementById('ct').textContent=items.length+' places';
+  items.sort(function(a,b){return a.n.localeCompare(b.n)});
+  items.forEach(function(i){
+    var e=document.createElement('div');e.className='ri';
+    e.innerHTML='<div class="dot" style="background:'+i.col+'"></div><div class="info"><div class="nm">'+i.n+'</div><div class="ad">'+i.a+'</div><span class="tg" style="background:'+i.col+'">'+i.cat+'</span></div>';
+    e.onclick=function(){map.flyTo(i.m.getLatLng(),16,{duration:.8});i.m.openPopup()};
+    l.appendChild(e);
+  });
+}
+
+function filt(){
+  var q=document.getElementById('q').value.toLowerCase();
+  var c=cf.value, h=nf.value;
+  var f=all.filter(function(i){
+    var mq=!q||i.n.toLowerCase().indexOf(q)>=0||i.a.toLowerCase().indexOf(q)>=0;
+    var mc=c==='all'||i.cat===c;
+    var mh=h==='all'||i.hood===h;
+    var ok=mq&&mc&&mh;
+    if(ok){if(!map.hasLayer(i.m))map.addLayer(i.m)}else{if(map.hasLayer(i.m))map.removeLayer(i.m)}
+    return ok;
+  });
+  render(f);
+}
+
+document.getElementById('q').addEventListener('input',filt);
+cf.addEventListener('change',filt);
+nf.addEventListener('change',filt);
+
+var sb=document.getElementById('sb'),tog=document.getElementById('tog');
+tog.onclick=function(){sb.classList.toggle('c');var closed=sb.classList.contains('c');tog.innerHTML=closed?'&#9654;':'&#9664;';document.getElementById('map').classList.toggle('sb-closed',closed);setTimeout(function(){map.invalidateSize()},350)};
+
+filt();
+
+
+</script>
+</body>
+</html>
