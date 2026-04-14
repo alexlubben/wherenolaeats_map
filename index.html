@@ -203,7 +203,7 @@ var all=[], cats=new Set(), hoods=new Set();
 R.forEach(function(r){
   var cat=r[4], hood=r[5], col=CC[cat]||"#999";
   cats.add(cat); hoods.add(hood);
-  var ic=L.divIcon({className:'x',html:'<div style="width:12px;height:12px;background:'+col+';border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>',iconSize:[12,12],iconAnchor:[6,6]});
+  var ic=L.divIcon({className:'x',html:'<div style="width:16px;height:16px;background:'+col+';border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>',iconSize:[16,16],iconAnchor:[8,8]});
   var m=L.marker([r[2],r[3]],{icon:ic}).addTo(map);
   m.bindPopup('<div class="pi"><h3>'+r[0]+'</h3><div class="pa">'+r[1]+'</div><div class="pc" style="background:'+col+'">'+cat+'</div><br><a href="'+r[6]+'" target="_blank" rel="noopener">Read Ian McNulty\'s coverage &rarr;</a></div>',{maxWidth:280});
   all.push({m:m,n:r[0],a:r[1],cat:cat,hood:hood,col:col});
