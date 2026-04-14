@@ -107,21 +107,21 @@
     .tog:hover{color:var(--accent)}
     .sb.c+.tog{left:50%;bottom:12px;border:1px solid var(--rule2);border-radius:6px}
     .sb.c+.tog::before{content:"\25B2 Show list"}
-    .legend{position:fixed;bottom:calc(50vh + 8px);bottom:calc(50dvh + 8px);right:6px;font-size:.66rem;padding:7px 10px;transition:bottom .3s ease;max-width:46vw;z-index:800}
+    .legend{position:fixed;bottom:calc(50vh + 26px);bottom:calc(50dvh + 26px);right:6px;font-size:.66rem;padding:7px 10px;transition:bottom .3s ease;max-width:46vw;z-index:800}
     .legend h4{font-size:.7rem;margin-bottom:0;padding-bottom:0;border-bottom:none;cursor:pointer;user-select:none;-webkit-user-select:none}
     .legend.open h4{margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid var(--rule2)}
     .legend .legend-body{display:none}
     .legend.open .legend-body{display:block}
     .lg-toggle{display:inline-block}
     .legend.open .lg-toggle{transform:rotate(180deg)}
-    .sb.c ~ .legend{bottom:12px}
+    .sb.c ~ .legend{bottom:30px}
     #map .leaflet-left{display:none}
     #map .leaflet-bottom{bottom:calc(50vh + 10px);bottom:calc(50dvh + 10px);transition:bottom .3s ease}
     #map.sb-closed .leaflet-bottom{bottom:10px}
     html.m-hidden .sb{transform:translateY(100%)!important;transition:none!important}
     html.m-hidden .tog{bottom:12px!important;border:1px solid var(--rule2)!important;border-radius:6px!important;transition:none!important}
     html.m-hidden .tog::before{content:"\25B2 Show list"!important}
-    html.m-hidden .legend{bottom:12px!important;transition:none!important}
+    html.m-hidden .legend{bottom:30px!important;transition:none!important}
     html.m-hidden #map .leaflet-bottom{bottom:10px!important;transition:none!important}
   }
 </style>
