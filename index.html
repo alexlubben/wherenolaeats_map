@@ -90,12 +90,19 @@
     .sub{display:none}
     #q{width:120px}
     #nf{display:none}
-    .sb{width:100%}
-    .sb.c{transform:translateX(-100%)}
-    .tog{left:100%}
-    .sb.c+.tog{left:0}
-    .legend{bottom:8px;right:6px;font-size:.64rem;padding:8px 11px}
+    .sb{top:auto;bottom:0;left:0;width:100%;height:50vh;border-right:none;border-top:2px solid var(--accent);box-shadow:0 -4px 20px var(--shadow-md);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+    .sb.c{transform:translateY(100%)}
+    .sh{padding:14px 20px 0}
+    .tog{top:auto;left:50%;bottom:calc(50vh - 1px);padding:9px 16px;background:var(--paper);border:1px solid var(--rule2);border-bottom:none;border-radius:6px 6px 0 0;box-shadow:0 -3px 10px var(--shadow);font-size:0;line-height:1;color:var(--nav);transform:translateX(-50%);transition:bottom .3s ease}
+    .tog::before{content:"Hide list \25BC";font-size:.7rem;font-family:var(--sans);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+    .tog:hover{color:var(--accent)}
+    .sb.c+.tog{left:50%;bottom:12px;border:1px solid var(--rule2);border-radius:6px}
+    .sb.c+.tog::before{content:"\25B2 Show list"}
+    .legend{bottom:calc(50vh + 8px);right:6px;font-size:.64rem;padding:8px 11px;transition:bottom .3s ease}
+    .sb.c ~ .legend{bottom:52px}
     #map .leaflet-left{left:10px}
+    #map .leaflet-bottom{bottom:calc(50vh + 10px);transition:bottom .3s ease}
+    #map.sb-closed .leaflet-bottom{bottom:10px}
   }
 </style>
 </head>
