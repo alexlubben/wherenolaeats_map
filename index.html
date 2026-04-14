@@ -6,7 +6,7 @@
 <title>Where NOLA Eats: Ian McNulty's New Orleans Restaurant Map</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700;900&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#111111;
@@ -40,6 +40,10 @@
   #cf option,#nf option{background:var(--nav);color:#fafafa}
   .ct{font-size:.66rem;color:rgba(255,255,255,.62);white-space:nowrap;font-weight:600;text-transform:uppercase;letter-spacing:.12em}
   #map{height:calc(100vh - var(--header-h));width:100%;background:var(--paper)}
+  .map-logo{position:absolute;top:calc(var(--header-h) + 14px);left:calc(50% + 170px);transform:translateX(-50%);z-index:700;background:rgba(255,255,255,.94);padding:10px 22px;border-radius:3px;box-shadow:0 4px 18px var(--shadow-md);border:1px solid var(--rule2);border-top:3px solid var(--accent);pointer-events:none;transition:left .3s ease}
+  .map-logo svg{display:block;height:58px;width:auto}
+  #map.sb-closed ~ .map-logo{left:50%}
+  @media(max-width:768px){.map-logo{padding:6px 14px;top:calc(var(--header-h) + 8px);left:50%}.map-logo svg{height:40px}}
   #map .leaflet-left{transition:left .3s ease;left:350px}
   #map.sb-closed .leaflet-left{left:10px}
   .leaflet-control-zoom a{border-radius:2px!important;color:var(--nav)!important;border:1px solid var(--rule)!important;background:var(--paper)!important;font-family:var(--serif)!important}
@@ -112,6 +116,21 @@
 <div class="sb" id="sb"><div class="sh"><h2>Restaurant Index</h2><p>Click a name to fly to it on the map</p></div><div id="rl"></div></div>
 <button class="tog" id="tog">&#9664;</button>
 <div id="map"></div>
+<div class="map-logo" aria-label="The Times-Picayune | nola.com">
+  <svg viewBox="0 0 1000 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TP | nola.com">
+    <defs>
+      <mask id="moon-crescent">
+        <rect width="1000" height="450" fill="#fff"/>
+        <ellipse cx="740" cy="180" rx="190" ry="200" fill="#000"/>
+      </mask>
+    </defs>
+    <text x="40" y="355" font-family="'UnifrakturCook','UnifrakturMaguntia',serif" font-weight="700" font-size="420" fill="#0058a9">TP</text>
+    <line x1="470" y1="70" x2="470" y2="385" stroke="#0058a9" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="800" cy="260" rx="215" ry="195" fill="#f4c430" mask="url(#moon-crescent)"/>
+    <text x="555" y="310" font-family="'Source Sans Pro',sans-serif" font-weight="900" font-size="230" fill="#0058a9" letter-spacing="-4">nola</text>
+    <text x="820" y="405" font-family="'Source Sans Pro',sans-serif" font-weight="700" font-size="78" fill="#0058a9">.com</text>
+  </svg>
+</div>
 <div class="legend">
   <h4>Categories</h4>
   <div class="legend-item"><div class="legend-dot" style="background:#722f37"></div> Upscale Creole</div>
