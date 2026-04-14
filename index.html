@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700;900&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+<script>if(window.matchMedia('(max-width:768px)').matches)document.documentElement.classList.add('m-hidden');</script>
 <style>
   :root{
     --ink:#111111;
@@ -26,7 +27,7 @@
     --header-h:77px;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:var(--sans);background:var(--paper);color:var(--ink2);overflow:hidden;height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink2);overflow:hidden;height:100vh;height:100dvh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
   header{background:var(--nav);color:#fafafa;padding:10px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;z-index:1000;position:relative;border-bottom:3px solid var(--accent);box-shadow:0 2px 14px var(--shadow)}
   .hb{display:flex;align-items:center;gap:14px;flex-shrink:0}
   h1{font-family:var(--serif);font-size:1.35rem;font-weight:700;white-space:nowrap;letter-spacing:-.005em}
@@ -39,7 +40,7 @@
   #q:focus,#cf:focus,#nf:focus{outline:none;border-color:var(--accent);background:rgba(255,255,255,.12)}
   #cf option,#nf option{background:var(--nav);color:#fafafa}
   .ct{font-size:.66rem;color:rgba(255,255,255,.62);white-space:nowrap;font-weight:600;text-transform:uppercase;letter-spacing:.12em}
-  #map{height:calc(100vh - var(--header-h));width:100%;background:var(--paper)}
+  #map{height:calc(100vh - var(--header-h));height:calc(100dvh - var(--header-h));width:100%;background:var(--paper)}
   #map .leaflet-left{transition:left .3s ease;left:350px}
   #map.sb-closed .leaflet-left{left:10px}
   .leaflet-control-zoom a{border-radius:2px!important;color:var(--nav)!important;border:1px solid var(--rule)!important;background:var(--paper)!important;font-family:var(--serif)!important}
@@ -86,30 +87,42 @@
   .legend a{color:var(--muted);text-decoration:none;border-bottom:1px dotted var(--muted)}
   .legend a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   @media(max-width:768px){
-    header{padding:7px 12px;flex-wrap:wrap;gap:8px}
-    h1{font-size:1rem}
+    body{display:flex;flex-direction:column}
+    header{padding:6px 10px;flex-wrap:wrap;gap:6px;flex-shrink:0}
+    h1{font-size:.95rem}
+    .hb{gap:10px}
+    .hb img{height:42px!important}
     .sub{display:none}
-    #q{width:120px}
-    #nf{display:none}
-    .sb{top:auto;bottom:0;left:0;width:100%;height:50vh;border-right:none;border-top:2px solid var(--accent);box-shadow:0 -4px 20px var(--shadow-md);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+    .ctrl{flex:1 1 100%;gap:5px;min-width:0;flex-wrap:nowrap}
+    #q,#cf,#nf{font-size:.72rem;padding:5px 7px;min-width:0}
+    #q{flex:1 1 80px;width:auto}
+    #cf,#nf{flex:0 1 auto;max-width:34vw;text-overflow:ellipsis}
+    .ct{display:none}
+    #map{flex:1 1 auto;height:auto;min-height:0;width:100%}
+    .sb{position:fixed;top:auto;bottom:0;left:0;right:0;width:100%;height:50vh;height:50dvh;border-right:none;border-top:2px solid var(--accent);box-shadow:0 -4px 20px var(--shadow-md);overscroll-behavior:contain;-webkit-overflow-scrolling:touch;z-index:800}
     .sb.c{transform:translateY(100%)}
     .sh{padding:14px 20px 0}
-    .tog{top:auto;left:50%;bottom:calc(50vh - 1px);padding:9px 16px;background:var(--paper);border:1px solid var(--rule2);border-bottom:none;border-radius:6px 6px 0 0;box-shadow:0 -3px 10px var(--shadow);font-size:0;line-height:1;color:var(--nav);transform:translateX(-50%);transition:bottom .3s ease}
+    .tog{position:fixed;top:auto;left:50%;bottom:calc(50vh - 1px);bottom:calc(50dvh - 1px);padding:9px 16px;background:var(--paper);border:1px solid var(--rule2);border-bottom:none;border-radius:6px 6px 0 0;box-shadow:0 -3px 10px var(--shadow);font-size:0;line-height:1;color:var(--nav);transform:translateX(-50%);transition:bottom .3s ease;z-index:801}
     .tog::before{content:"Hide list \25BC";font-size:.7rem;font-family:var(--sans);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
     .tog:hover{color:var(--accent)}
     .sb.c+.tog{left:50%;bottom:12px;border:1px solid var(--rule2);border-radius:6px}
     .sb.c+.tog::before{content:"\25B2 Show list"}
-    .legend{bottom:calc(50vh + 8px);right:6px;font-size:.66rem;padding:7px 10px;transition:bottom .3s ease;max-width:46vw}
+    .legend{position:fixed;bottom:calc(50vh + 8px);bottom:calc(50dvh + 8px);right:6px;font-size:.66rem;padding:7px 10px;transition:bottom .3s ease;max-width:46vw;z-index:800}
     .legend h4{font-size:.7rem;margin-bottom:0;padding-bottom:0;border-bottom:none;cursor:pointer;user-select:none;-webkit-user-select:none}
     .legend.open h4{margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid var(--rule2)}
     .legend .legend-body{display:none}
     .legend.open .legend-body{display:block}
     .lg-toggle{display:inline-block}
     .legend.open .lg-toggle{transform:rotate(180deg)}
-    .sb.c ~ .legend{bottom:52px}
+    .sb.c ~ .legend{bottom:12px}
     #map .leaflet-left{display:none}
-    #map .leaflet-bottom{bottom:calc(50vh + 10px);transition:bottom .3s ease}
+    #map .leaflet-bottom{bottom:calc(50vh + 10px);bottom:calc(50dvh + 10px);transition:bottom .3s ease}
     #map.sb-closed .leaflet-bottom{bottom:10px}
+    html.m-hidden .sb{transform:translateY(100%)!important;transition:none!important}
+    html.m-hidden .tog{bottom:12px!important;border:1px solid var(--rule2)!important;border-radius:6px!important;transition:none!important}
+    html.m-hidden .tog::before{content:"\25B2 Show list"!important}
+    html.m-hidden .legend{bottom:12px!important;transition:none!important}
+    html.m-hidden #map .leaflet-bottom{bottom:10px!important;transition:none!important}
   }
 </style>
 </head>
@@ -314,18 +327,26 @@ tog.onclick=function(){sb.classList.toggle('c');var closed=sb.classList.contains
 var lg=document.getElementById('lg');
 lg.querySelector('h4').addEventListener('click',function(){lg.classList.toggle('open')});
 
-// On mobile, default the sidebar list to hidden without triggering the slide transition
+// On mobile, default the sidebar list to hidden. The html.m-hidden class set in the head
+// keeps the list hidden from first paint (no FOUC); here we sync the .c state then release it.
 if(IS_MOBILE){
-  var prev=sb.style.transition;
-  sb.style.transition='none';
   sb.classList.add('c');
   tog.innerHTML='&#9654;';
   mapEl.classList.add('sb-closed');
-  void sb.offsetHeight;
-  requestAnimationFrame(function(){sb.style.transition=prev});
 }
 
 filt();
+
+// Release the pre-paint hide guard now that .sb.c is in charge of state
+if(IS_MOBILE){
+  requestAnimationFrame(function(){
+    document.documentElement.classList.remove('m-hidden');
+    map.invalidateSize();
+  });
+}
+
+// Keep Leaflet in sync when the viewport resizes (e.g. mobile browser chrome hides/shows)
+window.addEventListener('resize',function(){map.invalidateSize()});
 
 
 </script>
