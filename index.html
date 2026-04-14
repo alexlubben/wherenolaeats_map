@@ -79,7 +79,8 @@
   .pi a{display:inline-block;font-size:.85rem;font-weight:600;color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent);padding-bottom:1px;transition:color .15s,border-color .15s}
   .pi a:hover{color:var(--accent-dk);border-bottom-color:var(--accent-dk)}
   .legend{position:absolute;bottom:22px;right:14px;background:#fff;padding:12px 16px 11px;border-radius:2px;box-shadow:0 3px 18px var(--shadow-md);z-index:800;font-size:.72rem;border:1px solid var(--rule2);border-top:3px solid var(--accent)}
-  .legend h4{font-family:var(--serif);font-size:.82rem;margin-bottom:8px;font-weight:700;color:var(--nav);text-transform:uppercase;letter-spacing:.04em;padding-bottom:5px;border-bottom:1px solid var(--rule2)}
+  .legend h4{font-family:var(--serif);font-size:.82rem;margin-bottom:8px;font-weight:700;color:var(--nav);text-transform:uppercase;letter-spacing:.04em;padding-bottom:5px;border-bottom:1px solid var(--rule2);display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .lg-toggle{display:none;font-size:.7rem;opacity:.55;transition:transform .2s ease}
   .legend-item{display:flex;align-items:center;gap:7px;margin-bottom:3px;color:var(--ink2)}
   .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
   .legend a{color:var(--muted);text-decoration:none;border-bottom:1px dotted var(--muted)}
@@ -98,9 +99,15 @@
     .tog:hover{color:var(--accent)}
     .sb.c+.tog{left:50%;bottom:12px;border:1px solid var(--rule2);border-radius:6px}
     .sb.c+.tog::before{content:"\25B2 Show list"}
-    .legend{bottom:calc(50vh + 8px);right:6px;font-size:.64rem;padding:8px 11px;transition:bottom .3s ease}
+    .legend{bottom:calc(50vh + 8px);right:6px;font-size:.66rem;padding:7px 10px;transition:bottom .3s ease;max-width:46vw}
+    .legend h4{font-size:.7rem;margin-bottom:0;padding-bottom:0;border-bottom:none;cursor:pointer;user-select:none;-webkit-user-select:none}
+    .legend.open h4{margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid var(--rule2)}
+    .legend .legend-body{display:none}
+    .legend.open .legend-body{display:block}
+    .lg-toggle{display:inline-block}
+    .legend.open .lg-toggle{transform:rotate(180deg)}
     .sb.c ~ .legend{bottom:52px}
-    #map .leaflet-left{left:10px}
+    #map .leaflet-left{display:none}
     #map .leaflet-bottom{bottom:calc(50vh + 10px);transition:bottom .3s ease}
     #map.sb-closed .leaflet-bottom{bottom:10px}
   }
@@ -119,18 +126,20 @@
 <div class="sb" id="sb"><div class="sh"><h2>Ian's Picks</h2><p>Click a name to fly to it on the map</p></div><div id="rl"></div></div>
 <button class="tog" id="tog">&#9664;</button>
 <div id="map"></div>
-<div class="legend">
-  <h4>Categories</h4>
-  <div class="legend-item"><div class="legend-dot" style="background:#722f37"></div> Upscale Creole</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#c8a95e"></div> Traditional NOLA</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#2c5f7c"></div> Modern / Contemporary</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#5a7247"></div> Global Flavors</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#b8602a"></div> Casual / Neighborhood</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#4a8b9b"></div> Seafood</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#8b6e99"></div> Bar / Cocktails</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#c4713b"></div> Po-boys / Sandwiches</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#a0856e"></div> Bakery / Cafe</div>
-  <div style="margin-top:6px;font-size:.55rem;opacity:.45;line-height:1.3">Neighborhoods: <a href="http://hdl.handle.net/2451/43802" target="_blank" style="color:inherit">Neighborhood Area Boundary for New Orleans, LA, 2018</a></div>
+<div class="legend" id="lg">
+  <h4>Categories<span class="lg-toggle" aria-hidden="true">&#9660;</span></h4>
+  <div class="legend-body">
+    <div class="legend-item"><div class="legend-dot" style="background:#722f37"></div> Upscale Creole</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#c8a95e"></div> Traditional NOLA</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2c5f7c"></div> Modern / Contemporary</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#5a7247"></div> Global Flavors</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#b8602a"></div> Casual / Neighborhood</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4a8b9b"></div> Seafood</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#8b6e99"></div> Bar / Cocktails</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#c4713b"></div> Po-boys / Sandwiches</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a0856e"></div> Bakery / Cafe</div>
+    <div style="margin-top:6px;font-size:.55rem;opacity:.45;line-height:1.3">Neighborhoods: <a href="http://hdl.handle.net/2451/43802" target="_blank" style="color:inherit">Neighborhood Area Boundary for New Orleans, LA, 2018</a></div>
+  </div>
 </div>
 <script>
 var CC={"Upscale Creole":"#722f37","Traditional NOLA":"#c8a95e","Modern / Contemporary":"#2c5f7c","Global Flavors":"#5a7247","Casual / Neighborhood":"#b8602a","Seafood":"#4a8b9b","Bar / Cocktails":"#8b6e99","Po-boys / Sandwiches":"#c4713b","Bakery / Cafe":"#a0856e"};
@@ -247,8 +256,9 @@ var R=[
 ["Café Minh","4139 Canal St, New Orleans",29.9753,-90.1013,"Global Flavors","Mid-City","https://www.nola.com/entertainment_life/eat-drink/new-orleans-dining-guide-2019-best-vietnamese/article_f1a36597-328e-592d-b662-bdf1664f16b9.html"],
 ];
 
+var IS_MOBILE=window.matchMedia('(max-width:768px)').matches;
 var map=L.map('map',{zoomControl:false}).setView([29.960,-90.075],13);
-L.control.zoom({position:'bottomleft'}).addTo(map);
+if(!IS_MOBILE)L.control.zoom({position:'bottomleft'}).addTo(map);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',subdomains:'abcd',maxZoom:19}).addTo(map);
 
 var all=[], cats=new Set(), hoods=new Set();
@@ -297,8 +307,23 @@ document.getElementById('q').addEventListener('input',filt);
 cf.addEventListener('change',filt);
 nf.addEventListener('change',filt);
 
-var sb=document.getElementById('sb'),tog=document.getElementById('tog');
-tog.onclick=function(){sb.classList.toggle('c');var closed=sb.classList.contains('c');tog.innerHTML=closed?'&#9654;':'&#9664;';document.getElementById('map').classList.toggle('sb-closed',closed);setTimeout(function(){map.invalidateSize()},350)};
+var sb=document.getElementById('sb'),tog=document.getElementById('tog'),mapEl=document.getElementById('map');
+tog.onclick=function(){sb.classList.toggle('c');var closed=sb.classList.contains('c');tog.innerHTML=closed?'&#9654;':'&#9664;';mapEl.classList.toggle('sb-closed',closed);setTimeout(function(){map.invalidateSize()},350)};
+
+// Legend collapse toggle (used on mobile; no-op visual on desktop where body is always shown)
+var lg=document.getElementById('lg');
+lg.querySelector('h4').addEventListener('click',function(){lg.classList.toggle('open')});
+
+// On mobile, default the sidebar list to hidden without triggering the slide transition
+if(IS_MOBILE){
+  var prev=sb.style.transition;
+  sb.style.transition='none';
+  sb.classList.add('c');
+  tog.innerHTML='&#9654;';
+  mapEl.classList.add('sb-closed');
+  void sb.offsetHeight;
+  requestAnimationFrame(function(){sb.style.transition=prev});
+}
 
 filt();
 
